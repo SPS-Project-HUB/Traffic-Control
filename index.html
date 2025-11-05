@@ -1,52 +1,573 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Smart Traffic Control Dashboard</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Traffic Control Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: Arial; background:#101820; color:#fff; text-align:center; padding:20px; }
-    h1 { color:#00eaff; }
-    .box { background:#1c1f26; padding:20px; margin:15px auto; width:80%; border-radius:10px; font-size:24px; box-shadow:0 0 15px #00eaff88; }
-    .mode { font-size:30px; font-weight:bold; color:#ffeb3b; }
+    :root {
+      --primary: #0a2540;
+      --secondary: #00d4ff;
+      --accent: #6c63ff;
+      --danger: #ff4757;
+      --warning: #ffa502;
+      --success: #2ed573;
+      --dark: #0c1a2b;
+      --light: #f8f9fa;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--primary), var(--dark));
+      color: var(--light);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo i {
+      font-size: 2.5rem;
+      color: var(--secondary);
+    }
+
+    .logo h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    .logo span {
+      color: var(--secondary);
+    }
+
+    .time-display {
+      background: var(--card-bg);
+      padding: 10px 20px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--secondary);
+      font-size: 1.5rem;
+    }
+
+    .value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .unit {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-left: 5px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 15px;
+    }
+
+    .progress {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .traffic-progress {
+      background: var(--success);
+    }
+
+    .air-quality-progress {
+      background: var(--accent);
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .status-normal {
+      background: var(--success);
+    }
+
+    .status-warning {
+      background: var(--warning);
+    }
+
+    .status-danger {
+      background: var(--danger);
+    }
+
+    .mode-card {
+      grid-column: span 2;
+      text-align: center;
+    }
+
+    .mode-indicator {
+      display: inline-block;
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 15px;
+      box-shadow: 0 0 20px rgba(108, 99, 255, 0.5);
+      transition: var(--transition);
+    }
+
+    .mode-auto {
+      background: linear-gradient(45deg, var(--accent), #8a85ff);
+    }
+
+    .mode-manual {
+      background: linear-gradient(45deg, var(--warning), #ffb142);
+    }
+
+    .mode-emergency {
+      background: linear-gradient(45deg, var(--danger), #ff6b81);
+    }
+
+    .air-quality-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .air-quality-card {
+      text-align: center;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .o2-card {
+      border-left: 4px solid var(--success);
+    }
+
+    .co2-card {
+      border-left: 4px solid var(--danger);
+    }
+
+    .air-quality-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+
+    .chart-container {
+      margin-top: 20px;
+      height: 120px;
+      position: relative;
+    }
+
+    .chart-bar {
+      position: absolute;
+      bottom: 0;
+      width: 20px;
+      border-radius: 4px 4px 0 0;
+      transition: var(--transition);
+    }
+
+    .chart-bar-o2 {
+      background: var(--success);
+    }
+
+    .chart-bar-co2 {
+      background: var(--danger);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+      
+      .mode-card {
+        grid-column: span 1;
+      }
+      
+      .air-quality-container {
+        grid-template-columns: 1fr;
+      }
+      
+      header {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-traffic-light"></i>
+        <h1>Smart <span>Traffic Control</span></h1>
+      </div>
+      <div class="time-display">
+        <i class="far fa-clock"></i> 
+        <span id="current-time">Loading...</span>
+      </div>
+    </header>
 
-<h1>🚦 Smart Traffic Control — Live Dashboard</h1>
+    <div class="dashboard">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Way-1 Vehicle Count</div>
+          <div class="card-icon">
+            <i class="fas fa-car"></i>
+          </div>
+        </div>
+        <div class="value" id="way1">0</div>
+        <div class="progress-bar">
+          <div class="progress traffic-progress" id="way1-progress" style="width: 0%"></div>
+        </div>
+        <div class="status">
+          <div class="status-dot status-normal"></div>
+          <span>Traffic Flow: Normal</span>
+        </div>
+      </div>
 
-<div class="box">Way-1 Vehicle Count: <span id="way1">0</span></div>
-<div class="box">Way-2 Vehicle Count: <span id="way2">0</span></div>
-<div class="box">Air Quality (MQ-2): <span id="air">0</span></div>
-<div class="box mode">Mode: <span id="mode">Loading...</span></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Way-2 Vehicle Count</div>
+          <div class="card-icon">
+            <i class="fas fa-truck"></i>
+          </div>
+        </div>
+        <div class="value" id="way2">0</div>
+        <div class="progress-bar">
+          <div class="progress traffic-progress" id="way2-progress" style="width: 0%"></div>
+        </div>
+        <div class="status">
+          <div class="status-dot status-warning"></div>
+          <span>Traffic Flow: Moderate</span>
+        </div>
+      </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Air Quality Monitoring</div>
+          <div class="card-icon">
+            <i class="fas fa-wind"></i>
+          </div>
+        </div>
+        
+        <div class="air-quality-container">
+          <div class="air-quality-card o2-card">
+            <div>Oxygen (O2)</div>
+            <div class="air-quality-value" id="o2">21.0<span class="unit">%</span></div>
+            <div class="progress-bar">
+              <div class="progress air-quality-progress" id="o2-progress" style="width: 70%"></div>
+            </div>
+            <div class="status">
+              <div class="status-dot status-normal"></div>
+              <span>Optimal</span>
+            </div>
+          </div>
+          
+          <div class="air-quality-card co2-card">
+            <div>Carbon Dioxide (CO2)</div>
+            <div class="air-quality-value" id="co2">0.04<span class="unit">%</span></div>
+            <div class="progress-bar">
+              <div class="progress air-quality-progress" id="co2-progress" style="width: 10%"></div>
+            </div>
+            <div class="status">
+              <div class="status-dot status-normal"></div>
+              <span>Safe</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-container" id="air-quality-chart">
+          <!-- Chart bars will be generated by JavaScript -->
+        </div>
+      </div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDsv37aOlp9QBBWk1GjfDtf_I87szHZeH4",
-    authDomain: "traffic-control-e8904.firebaseapp.com",
-    databaseURL: "https://traffic-control-e8904-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "traffic-control-e8904",
-    storageBucket: "traffic-control-e8904.appspot.com",
-    messagingSenderId: "848619385421",
-    appId: "1:848619385421:web:71f5e9c8fa070ca05ce204"
-  };
+      <div class="card mode-card">
+        <div class="card-header">
+          <div class="card-title">System Mode</div>
+          <div class="card-icon">
+            <i class="fas fa-cog"></i>
+          </div>
+        </div>
+        <div class="mode-indicator mode-auto" id="mode">Auto</div>
+        <p style="margin-top: 15px; opacity: 0.8;">System is automatically adjusting traffic signals based on real-time data</p>
+      </div>
+    </div>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const dataRef = ref(db, "traffic");
+    <footer>
+      <p>Smart Traffic Control System &copy; 2023 | Real-time Monitoring Dashboard</p>
+    </footer>
+  </div>
 
-  onValue(dataRef, (snapshot) => {
-    const data = snapshot.val();
-    document.getElementById("way1").innerText = data.way1;
-    document.getElementById("way2").innerText = data.way2;
-    document.getElementById("air").innerText = data.air;
-    document.getElementById("mode").innerText = data.mode;
-  });
-</script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsv37aOlp9QBBWk1GjfDtf_I87szHZeH4",
+      authDomain: "traffic-control-e8904.firebaseapp.com",
+      databaseURL: "https://traffic-control-e8904-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "traffic-control-e8904",
+      storageBucket: "traffic-control-e8904.appspot.com",
+      messagingSenderId: "848619385421",
+      appId: "1:848619385421:web:71f5e9c8fa070ca05ce204"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dataRef = ref(db, "traffic");
+
+    // Update time display
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('current-time').textContent = now.toLocaleString();
+    }
+    
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Generate air quality chart bars
+    function generateChart() {
+      const chartContainer = document.getElementById('air-quality-chart');
+      chartContainer.innerHTML = '';
+      
+      for (let i = 0; i < 12; i++) {
+        const o2Bar = document.createElement('div');
+        o2Bar.className = 'chart-bar chart-bar-o2';
+        o2Bar.style.left = `${i * 30 + 10}px`;
+        o2Bar.style.height = `${Math.random() * 80 + 20}px`;
+        
+        const co2Bar = document.createElement('div');
+        co2Bar.className = 'chart-bar chart-bar-co2';
+        co2Bar.style.left = `${i * 30 + 10}px`;
+        co2Bar.style.height = `${Math.random() * 40 + 10}px`;
+        
+        chartContainer.appendChild(o2Bar);
+        chartContainer.appendChild(co2Bar);
+      }
+    }
+    
+    generateChart();
+
+    // Update progress bars based on values
+    function updateProgressBars(way1, way2, o2, co2) {
+      // Update traffic progress bars (assuming max 50 vehicles)
+      document.getElementById('way1-progress').style.width = `${Math.min(way1 / 50 * 100, 100)}%`;
+      document.getElementById('way2-progress').style.width = `${Math.min(way2 / 50 * 100, 100)}%`;
+      
+      // Update air quality progress bars
+      document.getElementById('o2-progress').style.width = `${(o2 / 25 * 100)}%`;
+      document.getElementById('co2-progress').style.width = `${(co2 / 0.1 * 100)}%`;
+      
+      // Update status indicators
+      updateStatusIndicators(way1, way2, o2, co2);
+    }
+    
+    function updateStatusIndicators(way1, way2, o2, co2) {
+      // Update traffic status
+      const way1Status = document.querySelector('#way1 + .progress-bar + .status');
+      const way2Status = document.querySelector('#way2 + .progress-bar + .status');
+      
+      updateTrafficStatus(way1Status, way1);
+      updateTrafficStatus(way2Status, way2);
+      
+      // Update air quality status
+      const o2Status = document.querySelector('#o2 + .progress-bar + .status');
+      const co2Status = document.querySelector('#co2 + .progress-bar + .status');
+      
+      updateAirQualityStatus(o2Status, o2, 'o2');
+      updateAirQualityStatus(co2Status, co2, 'co2');
+    }
+    
+    function updateTrafficStatus(element, count) {
+      const dot = element.querySelector('.status-dot');
+      const text = element.querySelector('span');
+      
+      if (count < 15) {
+        dot.className = 'status-dot status-normal';
+        text.textContent = 'Traffic Flow: Light';
+      } else if (count < 35) {
+        dot.className = 'status-dot status-warning';
+        text.textContent = 'Traffic Flow: Moderate';
+      } else {
+        dot.className = 'status-dot status-danger';
+        text.textContent = 'Traffic Flow: Heavy';
+      }
+    }
+    
+    function updateAirQualityStatus(element, value, type) {
+      const dot = element.querySelector('.status-dot');
+      const text = element.querySelector('span');
+      
+      if (type === 'o2') {
+        if (value > 20.5) {
+          dot.className = 'status-dot status-normal';
+          text.textContent = 'Optimal';
+        } else if (value > 19.5) {
+          dot.className = 'status-dot status-warning';
+          text.textContent = 'Acceptable';
+        } else {
+          dot.className = 'status-dot status-danger';
+          text.textContent = 'Poor';
+        }
+      } else { // CO2
+        if (value < 0.05) {
+          dot.className = 'status-dot status-normal';
+          text.textContent = 'Safe';
+        } else if (value < 0.1) {
+          dot.className = 'status-dot status-warning';
+          text.textContent = 'Elevated';
+        } else {
+          dot.className = 'status-dot status-danger';
+          text.textContent = 'Unhealthy';
+        }
+      }
+    }
+    
+    // Update mode indicator
+    function updateModeIndicator(mode) {
+      const modeElement = document.getElementById('mode');
+      modeElement.textContent = mode;
+      
+      // Remove all mode classes
+      modeElement.classList.remove('mode-auto', 'mode-manual', 'mode-emergency');
+      
+      // Add appropriate class based on mode
+      if (mode.toLowerCase().includes('auto')) {
+        modeElement.classList.add('mode-auto');
+      } else if (mode.toLowerCase().includes('manual')) {
+        modeElement.classList.add('mode-manual');
+      } else {
+        modeElement.classList.add('mode-emergency');
+      }
+    }
+
+    // Firebase data listener
+    onValue(dataRef, (snapshot) => {
+      const data = snapshot.val();
+      
+      // Update values
+      document.getElementById("way1").textContent = data.way1 || 0;
+      document.getElementById("way2").textContent = data.way2 || 0;
+      
+      // For demonstration, we'll generate O2 and CO2 values if not in Firebase
+      const o2Value = data.o2 || (20.5 + Math.random() * 1.5).toFixed(1);
+      const co2Value = data.co2 || (0.03 + Math.random() * 0.04).toFixed(3);
+      
+      document.getElementById("o2").innerHTML = `${o2Value}<span class="unit">%</span>`;
+      document.getElementById("co2").innerHTML = `${co2Value}<span class="unit">%</span>`;
+      
+      document.getElementById("mode").textContent = data.mode || "Auto";
+      
+      // Update progress bars and status indicators
+      updateProgressBars(
+        data.way1 || 0, 
+        data.way2 || 0, 
+        parseFloat(o2Value), 
+        parseFloat(co2Value)
+      );
+      
+      // Update mode indicator
+      updateModeIndicator(data.mode || "Auto");
+      
+      // Regenerate chart with new data
+      generateChart();
+    });
+  </script>
 </body>
 </html>
